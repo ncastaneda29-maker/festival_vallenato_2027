@@ -16,5 +16,5 @@ Aplicación web dinámica desarrollada en **Django** y **MySQL** utilizando el p
 
 ### 1. Clonar el repositorio
 ```bash
-git clone [https://github.com/equipo/festival_vallenato_2027.git](https://github.com/equipo/festival_vallenato_2027.git)
+git clone [https://github.com/ncastaneda29-maker/festival_vallenato_2027.git](https://github.com/ncastaneda29-maker/festival_vallenato_2027.git)
 cd festival_vallenato_2027
