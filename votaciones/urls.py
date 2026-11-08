@@ -26,5 +26,6 @@ urlpatterns = [
     path('categoria/eliminar/<int:pk>/', views.eliminar_categoria, name='eliminar_categoria'),
     path('participante/eliminar/<int:pk>/', views.eliminar_participante, name='eliminar_participante'),
     path('edicion/eliminar/<int:pk>/', views.eliminar_edicion, name='eliminar_edicion'),
+    path('api/categorias/', views.api_categorias, name='api_categorias'),
     
 ]

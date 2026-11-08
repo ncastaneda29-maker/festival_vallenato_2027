@@ -10,6 +10,7 @@ from .forms import CategoriaForm, EdicionForm, OpcionForm
 from .models import Categoria, Edicion, Opcion, Votacion, Voto, AuditoriaEliminacion
 from django.db.models import Count
 from django.http import JsonResponse
+from .models import Categoria
 
 
 # --- VISTA PÚBLICA DEL FESTIVAL (Solo Ediciones Activas) ---
@@ -339,3 +340,32 @@ def eliminar_edicion(request, pk):
             messages.error(request, "El nombre ingresado no coincide. La eliminación fue cancelada por seguridad.")
             
     return render(request, 'votaciones/confirmar_eliminacion_edicion.html', {'edicion': edicion})
+
+def api_categorias(request):
+    """
+    Endpoint GET /api/categorias protegido
+    Devuelve un listado en formato JSON solo si el usuario está autenticado y es administrador.
+    """
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Acceso denegado. Se requieren permisos de administrador.'
+        }, status=403)
+
+    categorias = Categoria.objects.select_related('edicion').all()
+    
+    lista_categorias = []
+    for cat in categorias:
+        lista_categorias.append({
+            'id': cat.pk,
+            'nombre': cat.nombre,
+            'descripcion': cat.descripcion or "Sin descripción",
+            'edicion': cat.edicion.nombre if cat.edicion else "Sin edición",
+            'anio': cat.edicion.anio if cat.edicion else None
+        })
+
+    return JsonResponse({
+        'status': 'success',
+        'total': len(lista_categorias),
+        'categorias': lista_categorias
+    }, safe=False)
