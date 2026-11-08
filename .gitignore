@@ -1,0 +1,19 @@
+# Entornos virtuales
+venv/
+env/
+.env
+
+# Archivos de caché
+__pycache__/
+*.pyc
+
+# Base de datos local
+db.sqlite3
+
+# Archivos multimedia subidos por usuarios (¡Muy importante!)
+media/
+
+# Editores y sistema
+.vscode/
+.idea/
+.DS_Store

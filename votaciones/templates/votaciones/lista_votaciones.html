@@ -1,0 +1,212 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Festival Vallenato 2027 - Votaciones Oficiales</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(rgba(11, 11, 14, 0.88), rgba(11, 11, 14, 0.94)), url('{% static "img/tm-festival-leyenda-vallenata.jpg" %}');
+            background-size: cover;
+            background-position: center center;
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+        .navbar-custom {
+            background-color: rgba(11, 11, 14, 0.95);
+            backdrop-filter: blur(5px);
+            border-bottom: 2px solid #ffc107;
+        }
+        .hero-banner {
+            background-color: rgba(18, 18, 22, 0.92);
+            backdrop-filter: blur(6px);
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 45px 20px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.8);
+            margin-bottom: 40px;
+        }
+        .custom-card {
+            background-color: rgba(18, 18, 22, 0.95) !important;
+            backdrop-filter: blur(6px);
+            border: 2px solid #ffc107 !important;
+            border-radius: 15px;
+        }
+        .custom-card-header {
+            background: linear-gradient(90deg, #ffc107 0%, #fd7e14 100%) !important;
+            color: #000000 !important;
+            font-weight: bold;
+            border-top-left-radius: 13px;
+            border-top-right-radius: 13px;
+        }
+        .badge-estado {
+            font-size: 0.8rem;
+        }
+        .participante-card {
+            background-color: rgba(26, 26, 34, 0.95);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 193, 7, 0.5);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .participante-card:hover {
+            transform: translateY(-4px);
+            border-color: #ffc107;
+        }
+        .participante-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-top-left-radius: 14px;
+            border-top-right-radius: 14px;
+        }
+        .text-light-custom {
+            color: #e2e8f0 !important;
+        }
+        
+        /* ESTILOS PARA DESPLEGAR DESCRIPCIÓN CON SCROLL INTERNO (SIN TAPIAR NADA) */
+        .descripcion-box {
+            max-height: 70px;
+            overflow-y: hidden;
+            transition: max-height 0.3s ease;
+            position: relative;
+        }
+        /* Al pasar el cursor, se expande con scroll interno si el texto es muy largo */
+        .participante-card:hover .descripcion-box {
+            max-height: 160px;
+            overflow-y: auto;
+            background-color: rgba(15, 15, 20, 0.95);
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra de navegación pública con logo -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4 py-3 shadow">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold fs-4 text-warning d-flex align-items-center gap-2" href="{% url 'lista_votaciones' %}">
+                <img src="{% static 'img/logo-1.png' %}" alt="Logo Festival" style="height: 40px; width: auto; border-radius: 6px;">
+                Festival Vallenato 2027
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                {% if request.user.is_authenticated %}
+                    <span class="text-light small me-2">Hola, <strong>{{ request.user.username }}</strong></span>
+                    <a href="{% url 'logout_votante' %}" class="btn btn-outline-danger btn-sm px-3">Cerrar Sesión</a>
+                {% else %}
+                    <a href="{% url 'login_votante' %}" class="btn btn-outline-warning btn-sm px-3">Iniciar Sesión</a>
+                    <a href="{% url 'registro_votante' %}" class="btn btn-warning text-dark fw-bold btn-sm px-3">Registrarse</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        
+        <!-- BANNER FOLCLÓRICO PRINCIPAL -->
+        <div class="hero-banner shadow-lg">
+            <h1 class="text-warning fw-bold mb-3">🎵 Votaciones Oficiales - Festival Vallenato 2027</h1>
+            <p class="lead text-light-custom mb-0">Apoya a tus artistas y concursantes favoritos participando en las categorías oficiales del festival.</p>
+        </div>
+
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- LISTADO DE EDICIONES ACTIVAS -->
+        {% if ediciones %}
+            {% for edicion in ediciones %}
+                <div class="mb-5">
+                    <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom border-warning">
+                        <h2 class="text-warning fw-bold mb-0">🏆 {{ edicion.nombre }} ({{ edicion.anio }})</h2>
+                        <span class="badge bg-success badge-estado px-3 py-2">Edición Activa</span>
+                    </div>
+
+                    {% if edicion.categorias.all %}
+                        <div class="row row-cols-1 g-4">
+                            {% for categoria in edicion.categorias.all %}
+                                <div class="col">
+                                    <div class="card custom-card shadow-lg">
+                                        <div class="card-header custom-card-header py-3 px-4">
+                                            <h4 class="mb-1 text-dark fw-bold">{{ categoria.nombre }}</h4>
+                                            <p class="mb-0 text-dark small opacity-75">{{ categoria.descripcion|default:"Selecciona tu participante favorito en esta categoría." }}</p>
+                                        </div>
+                                        <div class="card-body p-4">
+                                            {% with votacion=categoria.votaciones.first %}
+                                                {% if votacion and votacion.opciones.all %}
+                                                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                                                        {% for opcion in votacion.opciones.all %}
+                                                            <div class="col">
+                                                                <div class="card participante-card h-100 shadow-sm">
+                                                                    {% if opcion.imagen_url %}
+                                                                        <img src="/media/{{ opcion.imagen_url }}" class="participante-img" alt="{{ opcion.nombre }}">
+                                                                    {% else %}
+                                                                        <div class="participante-img bg-secondary d-flex align-items-center justify-content-center text-dark fw-bold">
+                                                                            Sin Imagen
+                                                                        </div>
+                                                                    {% endif %}
+                                                                    <div class="card-body d-flex flex-column p-3">
+                                                                        <h5 class="card-title text-warning fw-bold mb-1">{{ opcion.nombre }}</h5>
+                                                                        
+                                                                        <!-- DESCRIPCIÓN CON EXPANSIÓN Y SCROLL INTERNO AL PASAR EL CURSOR -->
+                                                                        <div class="descripcion-box mb-3 flex-grow-1" title="Desliza para ver más">
+                                                                            <p class="card-text text-light-custom small mb-0">
+                                                                                {{ opcion.descripcion|default:"Participante oficial del festival." }}
+                                                                            </p>
+                                                                        </div>
+                                                                        
+                                                                        <div class="mt-auto">
+                                                                            {% if request.user.is_authenticated %}
+                                                                                {% if votacion.pk in votaciones_usuario_ids %}
+                                                                                    <button class="btn btn-secondary btn-sm w-100 fw-bold py-2" disabled>Voto Emitido</button>
+                                                                                {% else %}
+                                                                                    <a href="{% url 'emitir_voto' opcion.pk %}" class="btn btn-warning text-dark btn-sm w-100 fw-bold py-2 shadow-sm" onclick="return confirm('¿Confirmas tu voto por {{ opcion.nombre }}?')">Votar por este Participante</a>
+                                                                                {% endif %}
+                                                                            {% else %}
+                                                                                <a href="{% url 'login_votante' %}" class="btn btn-outline-warning btn-sm w-100 fw-bold py-2">Inicia sesión para votar</a>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    <p class="text-muted fst-italic mb-0 text-center py-3">No hay participantes registrados todavía en esta categoría.</p>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-dark border-warning text-light p-4 text-center">
+                            <p class="mb-0">No hay categorías configuradas para esta edición en este momento.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="hero-banner shadow-lg py-5">
+                <h3 class="text-warning fw-bold mb-3">No hay ediciones activas disponibles</h3>
+                <p class="text-light-custom mb-0">En este momento el festival no cuenta con votaciones abiertas al público. Por favor, vuelve más tarde.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

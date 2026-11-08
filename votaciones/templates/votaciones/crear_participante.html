@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Participante - Festival Vallenato</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(180deg, #040405 0%, #eba552 100%);
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+        .custom-card {
+            background-color: rgba(4, 4, 5, 0.92);
+            border: 2px solid #16b24a !important;
+            border-radius: 12px;
+        }
+        .custom-card-header {
+            background-color: #16b24a !important;
+            color: #ffffff !important;
+            font-weight: bold;
+        }
+        .form-control, .form-select {
+            color: #000000 !important;
+            background-color: #ffffff !important;
+            border: 1px solid #ced4da;
+        }
+        .form-control:focus, .form-select:focus {
+            color: #000000 !important;
+            background-color: #ffffff !important;
+            border-color: #16b24a;
+            box-shadow: 0 0 0 0.25rem rgba(22, 178, 74, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5" style="max-width: 600px;">
+        <div class="card custom-card shadow-lg">
+            <div class="card-header custom-card-header text-center py-3">
+                <h3 class="mb-0">Registrar Participante</h3>
+                <small class="text-light">Para la votación: <strong>{{ votacion.titulo }}</strong></small>
+            </div>
+            <div class="card-body p-4">
+                <!-- ACCIÓN EXPLÍCITA: Apunta directo a la URL de la vista con su barra diagonal final -->
+                <form method="POST" enctype="multipart/form-data" action="{% url 'crear_participante' votacion.pk %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.nombre.id_for_label }}" class="form-label fw-bold text-white">{{ form.nombre.label }}</label>
+                        {{ form.nombre }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-bold text-white">{{ form.descripcion.label }}</label>
+                        {{ form.descripcion }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.imagen_archivo.id_for_label }}" class="form-label fw-bold text-white">{{ form.imagen_archivo.label }}</label>
+                        {{ form.imagen_archivo }}
+                        <div class="form-text text-muted">Sube una fotografía desde tu equipo (opcional).</div>
+                    </div>
+
+                    <!-- Campo oculto para imagen_url -->
+                    {{ form.imagen_url }}
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-success fw-bold py-2" style="background-color: #16b24a; border: none;">Guardar Participante</button>
+                        <a href="{% url 'lista_votaciones' %}" class="btn btn-outline-light btn-sm">Finalizar y Volver al Inicio</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
