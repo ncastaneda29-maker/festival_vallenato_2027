@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Festival Vallenato 2027 - Votaciones Oficiales</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            /* Fondo fijo con la imagen de los juglares y un filtro oscuro sutil */
+            background: linear-gradient(rgba(11, 11, 14, 0.70), rgba(11, 11, 14, 0.80)), url('{% static "img/tm-festival-leyenda-vallenata.jpg" %}');
+            background-size: cover;
+            background-position: center center;
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+        .navbar-custom {
+            background-color: rgba(11, 11, 14, 0.85);
+            backdrop-filter: blur(5px);
+            border-bottom: 2px solid #ffc107;
+        }
+        /* Banner principal semitransparente */
+        .hero-banner {
+            background-color: rgba(18, 18, 22, 0.75);
+            backdrop-filter: blur(6px);
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 45px 20px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+            margin-bottom: 40px;
+        }
+        /* Tarjetas principales de edición con transparencia */
+        .custom-card {
+            background-color: rgba(18, 18, 22, 0.78) !important;
+            backdrop-filter: blur(6px);
+            border: 2px solid #ffc107 !important;
+            border-radius: 15px;
+        }
+        .custom-card-header {
+            background: linear-gradient(90deg, #ffc107 0%, #fd7e14 100%) !important;
+            color: #000000 !important;
+            font-weight: bold;
+            border-top-left-radius: 13px;
+            border-top-right-radius: 13px;
+        }
+        .badge-estado {
+            font-size: 0.8rem;
+        }
+        /* Tarjetas individuales de cada participante con transparencia para que se vea el fondo */
+        .participante-card {
+            background-color: rgba(26, 26, 34, 0.82);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 193, 7, 0.4);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .participante-card:hover {
+            transform: translateY(-4px);
+            border-color: #ffc107;
+        }
+        .participante-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-top-left-radius: 14px;
+            border-top-right-radius: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra de navegación pública con tu logo-1.png -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4 py-3 shadow">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold fs-4 text-warning d-flex align-items-center gap-2" href="{% url 'lista_votaciones' %}">
+                <img src="{% static 'img/logo-1.png' %}" alt="Logo Festival" style="height: 40px; width: auto; border-radius: 6px;">
+                Festival Vallenato 2027
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                {% if request.user.is_authenticated %}
+                    <span class="text-light small me-2">Hola, <strong>{{ request.user.username }}</strong></span>
+                    <a href="{% url 'logout_votante' %}" class="btn btn-outline-danger btn-sm px-3">Cerrar Sesión</a>
+                {% else %}
+                    <a href="{% url 'login_votante' %}" class="btn btn-outline-warning btn-sm px-3">Iniciar Sesión</a>
+                    <a href="{% url 'registro_votante' %}" class="btn btn-warning text-dark fw-bold btn-sm px-3">Registrarse</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        
+        <!-- BANNER FOLCLÓRICO PRINCIPAL -->
+        <div class="hero-banner shadow-lg">
+            <h1 class="display-5 fw-bold text-warning mb-3">🪗 Ediciones y Participantes del Festival 🪗</h1>
+            <p class="lead text-light mb-0">Apoya a tus favoritos en las categorías oficiales. Tu voto es único, seguro y transparente.</p>
+        </div>
+
+        {% if ediciones %}
+            <div class="row">
+                {% for edicion in ediciones %}
+                    <div class="col-md-12 mb-4">
+                        <div class="card custom-card shadow-lg">
+                            <div class="card-header custom-card-header d-flex justify-content-between align-items-center py-3">
+                                <div>
+                                    <h3 class="mb-0 text-dark">🎵 {{ edicion.nombre }} <span class="fw-normal fs-5">({{ edicion.anio }})</span></h3>
+                                </div>
+                                <div>
+                                    {% if edicion.estado == '1' or edicion.estado == 'Activa' %}
+                                        <span class="badge bg-dark text-warning border border-warning badge-estado px-3 py-2">Edición Activa</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary badge-estado px-3 py-2">Inactiva</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                {% if edicion.categorias.all %}
+                                    <h5 class="text-warning fw-bold mb-4">🏆 Categorías y Participantes:</h5>
+                                    <div class="row">
+                                        {% for categoria in edicion.categorias.all %}
+                                            <div class="col-md-12 mb-4">
+                                                <!-- Contenedor de categoría con transparencia -->
+                                                <div class="p-4 border border-secondary rounded shadow-sm" style="background-color: rgba(15, 15, 19, 0.70) !important; backdrop-filter: blur(4px);">
+                                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                                        <div>
+                                                            <h4 class="text-white mb-1 fw-bold">{{ categoria.nombre }}</h4>
+                                                            <p class="text-muted small mb-0">{{ categoria.descripcion|default:"Sin descripción registrada." }}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Listado de votaciones y sus participantes -->
+                                                    {% if categoria.votaciones.all %}
+                                                        <div class="mt-3">
+                                                            {% for votacion in categoria.votaciones.all %}
+                                                                <div class="mb-3">
+                                                                    <h6 class="text-warning fw-semibold mb-3">📌 {{ votacion.titulo }}</h6>
+                                                                    
+                                                                    {% if votacion.opciones.all %}
+                                                                        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3">
+                                                                            {% for opcion in votacion.opciones.all %}
+                                                                                <div class="col">
+                                                                                    <div class="card participante-card h-100 text-light">
+                                                                                        {% if opcion.imagen_url %}
+                                                                                            <img src="/media/{{ opcion.imagen_url }}" alt="{{ opcion.nombre }}" class="participante-img">
+                                                                                        {% else %}
+                                                                                            <div class="bg-secondary text-center py-5 text-dark fw-bold participante-img d-flex align-items-center justify-content-center" style="opacity: 0.8;">
+                                                                                                <span>Sin Foto</span>
+                                                                                            </div>
+                                                                                        {% endif %}
+                                                                                        <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                                                                            <div>
+                                                                                                <h6 class="card-title fw-bold text-white mb-1">{{ opcion.nombre }}</h6>
+                                                                                                <p class="card-text text-muted small mb-3">{{ opcion.descripcion|default:"Participante oficial."|truncatechars:60 }}</p>
+                                                                                            </div>
+                                                                                            
+                                                                                            <!-- BOTÓN DINÁMICO DE VOTACIÓN CON VALIDACIÓN DE VOTO (LÓGICA INTACTA) -->
+                                                                                            <div class="mt-2">
+                                                                                                {% if request.user.is_authenticated %}
+                                                                                                    {% if votacion.pk in votaciones_usuario_ids %}
+                                                                                                        <button class="btn btn-secondary btn-sm w-100 fw-bold" disabled>
+                                                                                                            🔒 Ya votaste en esta categoría
+                                                                                                        </button>
+                                                                                                    {% else %}
+                                                                                                        <a href="{% url 'emitir_voto' opcion.pk %}" class="btn btn-warning text-dark btn-sm w-100 fw-bold">
+                                                                                                            ⭐ Votar
+                                                                                                        </a>
+                                                                                                    {% endif %}
+                                                                                                {% else %}
+                                                                                                    <a href="{% url 'login_votante' %}" class="btn btn-outline-warning btn-sm w-100">
+                                                                                                        🔒 Inicia sesión para votar
+                                                                                                    </a>
+                                                                                                {% endif %}
+                                                                                            </div>
+
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            {% endfor %}
+                                                                        </div>
+                                                                    {% else %}
+                                                                        <p class="text-muted small fst-italic">Aún no hay participantes inscritos en esta votación.</p>
+                                                                    {% endif %}
+                                                                </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted fst-italic mb-0 text-center py-3">No hay categorías registradas para esta edición todavía.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <div class="card custom-card p-5 d-inline-block shadow">
+                    <h4 class="text-light mb-3">No hay ediciones registradas aún.</h4>
+                    <p class="text-muted mb-0">Pronto se habilitarán las votaciones oficiales del festival.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
