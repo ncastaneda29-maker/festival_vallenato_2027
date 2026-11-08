@@ -248,14 +248,54 @@ def ver_resultados_admin(request):
 
 
 def api_lista_ediciones(request):
+    """
+    Endpoint GET /api/ediciones/ protegido
+    Devuelve un listado en formato JSON con las ediciones, sus respectivas
+    categorías y las opciones (participantes) anidadas desde la base de datos.
+    """
     if not request.user.is_authenticated or not request.user.is_staff:
         return JsonResponse({
             'status': 'error',
             'message': 'Acceso denegado. Se requieren permisos de administrador.'
         }, status=403)
 
-    ediciones = list(Edicion.objects.values('id_edicion', 'nombre', 'anio', 'estado'))
-    return JsonResponse({'status': 'success', 'ediciones': ediciones}, safe=False)
+    # Optimizamos trayendo las ediciones junto con sus categorías, votaciones y opciones
+    ediciones = Edicion.objects.prefetch_related('categorias__votaciones__opciones').all()
+    
+    lista_ediciones = []
+    for ed in ediciones:
+        categorias_lista = []
+        for cat in ed.categorias.all():
+            opciones_lista = []
+            for votacion in cat.votaciones.all():
+                for opcion in votacion.opciones.all():
+                    opciones_lista.append({
+                        'id': opcion.pk,
+                        'nombre': opcion.nombre,
+                        'descripcion': opcion.descripcion or "",
+                        'imagen_url': opcion.imagen_url or ""
+                    })
+
+            categorias_lista.append({
+                'id': cat.pk,
+                'nombre': cat.nombre,
+                'descripcion': cat.descripcion or "Sin descripción",
+                'opciones': opciones_lista
+            })
+
+        lista_ediciones.append({
+            'id': ed.pk,
+            'nombre': ed.nombre,
+            'anio': ed.anio,
+            'estado': ed.estado,
+            'categorias': categorias_lista  # <--- ¡Estructura anidada completa!
+        })
+
+    return JsonResponse({
+        'status': 'success',
+        'total': len(lista_ediciones),
+        'ediciones': lista_ediciones
+    }, safe=False)
 
 
 @login_required(login_url='/login/')
@@ -344,7 +384,8 @@ def eliminar_edicion(request, pk):
 def api_categorias(request):
     """
     Endpoint GET /api/categorias protegido
-    Devuelve un listado en formato JSON solo si el usuario está autenticado y es administrador.
+    Devuelve un listado en formato JSON con las categorías, su edición 
+    y las opciones (participantes) asociadas desde la base de datos.
     """
     if not request.user.is_authenticated or not request.user.is_staff:
         return JsonResponse({
@@ -352,16 +393,27 @@ def api_categorias(request):
             'message': 'Acceso denegado. Se requieren permisos de administrador.'
         }, status=403)
 
-    categorias = Categoria.objects.select_related('edicion').all()
+    categorias = Categoria.objects.select_related('edicion').prefetch_related('votaciones__opciones').all()
     
     lista_categorias = []
     for cat in categorias:
+        opciones_lista = []
+        for votacion in cat.votaciones.all():
+            for opcion in votacion.opciones.all():
+                opciones_lista.append({
+                    'id': opcion.pk,
+                    'nombre': opcion.nombre,
+                    'descripcion': opcion.descripcion or "",
+                    'imagen_url': opcion.imagen_url or ""
+                })
+
         lista_categorias.append({
             'id': cat.pk,
             'nombre': cat.nombre,
             'descripcion': cat.descripcion or "Sin descripción",
             'edicion': cat.edicion.nombre if cat.edicion else "Sin edición",
-            'anio': cat.edicion.anio if cat.edicion else None
+            'anio': cat.edicion.anio if cat.edicion else None,
+            'opciones': opciones_lista  # <--- ¡Aquí se incluyen oficialmente las opciones!
         })
 
     return JsonResponse({
